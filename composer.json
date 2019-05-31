@@ -1,0 +1,16 @@
+{
+    "name": "observer/pdd",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "sanjingshou",
+            "email": "sxpd7788@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.0",
+        "guzzlehttp/guzzle": "^6.2",
+        "monolog/monolog": "^1.22",
+        "pimple/pimple": "^3.0"
+    }
+}
