@@ -13,7 +13,10 @@ class GoodsServiceProvider implements ServiceProviderInterface
     public function register(Container $pimple)
     {
         $pimple['goods'] = function ($pimple) {
-            return new Goods();
+
+            $clientID = $pimple['config']->get('client_id');
+            $clientSecret = $pimple['config']->get('client_secret');
+            return new Goods($clientID, $clientSecret);
         };
     }
 

@@ -7,57 +7,34 @@ use EasyPdd\Core\Exceptions\HttpException;
 use EasyPdd\Support\Collection;
 use EasyPdd\Support\Log;
 use GuzzleHttp\Middleware;
+use GuzzleHttp\Promise\PromiseInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
 abstract class AbstractAPI
 {
     /**
-     * @var
+     * @var 
      */
-    private $appId;
+    private $client_id;
 
     /**
      * @var
      */
-    private $appKey;
-
-    /**
-     * @var AccessToken
-     */
-    public $accessToken;
-
+    private $client_secret;
+    
     /**
      * @var Http
      */
     protected $http;
 
-    /**
-     * Constructor.
-     *
-     * @param AccessToken $accessToken
-     */
-    public function __construct(AccessToken $accessToken)
-    {
-        $this->setAccessToken($accessToken);
-    }
 
-    /**
-     * @param $accessToken
-     */
-    public function setAccessToken($accessToken)
+    public function __construct($client_id, $client_secret)
     {
-        $this->accessToken = $accessToken;
+        $this->client_id = $client_id;
+        $this->client_secret = $client_secret;
     }
-
-    /**
-     * @return AccessToken
-     */
-    public function getAccessToken()
-    {
-        return $this->accessToken;
-    }
-
+    
     /**
      * @return Http
      */
@@ -86,10 +63,9 @@ abstract class AbstractAPI
     {
         // log
         $this->http->addMiddleware($this->logMiddleware());
-        // retry
-        $this->http->addMiddleware($this->retryMiddleware());
+        
         // access token
-        $this->http->addMiddleware($this->accessTokenMiddleware());
+//        $this->http->addMiddleware($this->accessTokenMiddleware());
     }
 
     /**
@@ -104,16 +80,6 @@ abstract class AbstractAPI
                 if (!$this->accessToken) {
                     return $handler($request, $options);
                 }
-                $token = $this->accessToken->getToken();
-
-                $uri = $request->getUri();
-                $path = $uri->getPath();
-                $path .= 'access_token/' . $token . '/sf_appid/' . $this->accessToken->getAppId() .  '/sf_appkey/' . $this->accessToken->getAppKey();
-                $uri = $uri->withPath($path);
-                $request = $request->withUri($uri);
-
-                Log::debug("attache access token : {$uri}");
-                Log::debug("attache path : {$path}");
                 return $handler($request, $options);
             };
         };
@@ -122,59 +88,38 @@ abstract class AbstractAPI
     /**
      * @return callable
      */
-    protected function retryMiddleware()
-    {
-        return Middleware::retry(function (
-            $retries,
-            RequestInterface $request,
-            ResponseInterface $response = null
-        ) {
-            // Limit the number of retries to 2
-            if ($retries <= 1 && $response && $body = $response->getBody()) {
-                // Retry on server errors
-                if (stripos($body, 'code') && (stripos($body, 'EX_CODE_OPENAPI_0103') || stripos($body, 'EX_CODE_OPENAPI_0105'))) {
-                    $token = $this->accessToken->getToken(true);
-
-                    $uri = $request->getUri();
-                    $path = $uri->getPath();
-                    $path .= 'access_token/' . $token . '/sf_appid/' . $this->appId .  '/sf_appkey/' . $this->appKey;
-                    $newUri = $uri->withPath($path);
-                    $request->withUri($newUri);
-
-                    Log::debug("Retry with Request Token: {$token}");
-                    Log::debug("Retry with Request Uri: {$newUri}");
-
-                    return true;
-                }
-            }
-
-            return false;
-        });
-
-    }
-
-    /**
-     * @return callable
-     */
     protected function logMiddleware()
     {
         return Middleware::tap(function (RequestInterface $request, $options) {
-            Log::debug("Request: {$request->getMethod()} {$request->getUri()} ".json_encode($options));
-            Log::debug('Request headers:'.json_encode($request->getHeaders()));
+            Log::debug("Client Request: {$request->getMethod()} {$request->getUri()} ", [$options, $request->getHeaders()]);
+
+        }, function (RequestInterface $request, $options, PromiseInterface $response) {
+
+            $response->then(function (ResponseInterface $response) {
+                Log::debug('API response:', [
+                    'Status' => $response->getStatusCode(),
+                    'Reason' => $response->getReasonPhrase(),
+                    'Headers' => $response->getHeaders(),
+                    'Body' => strval($response->getBody()),
+                ]);
+            });
         });
     }
 
     /**
-     * @param $method
-     * @param array $args
+     * @param $apiType
+     * @param string $accessToken
+     * @param array $params
+     *
      * @return Collection
-     * @throws Exceptions\HttpException
      */
-    public function parseJSON($method, array $args)
+    public function request($apiType, $accessToken = '', array $params = [])
     {
         $http = $this->getHttp();
 
-        $contents = $http->parseJSON(call_user_func_array([$http, $method], $args));
+        $data = $this->_commonParams($apiType, $accessToken, $params);
+
+        $contents = $http->parseJSON(call_user_func_array([$http, 'json'], [$data]));
 
         $this->checkAndThrow($contents);
 
@@ -183,28 +128,64 @@ abstract class AbstractAPI
 
     /**
      * @param array $contents
-     * @throws HttpException
      *
+     * @throws HttpException
      */
     protected function checkAndThrow(array $contents)
     {
-        if (isset($contents['head']) && isset($contents['head']['code']) && 'EX_CODE_OPENAPI_0200' !== $contents['head']['code']) {
-
-            if (empty($contents['head']['message'])) {
-                $contents['head']['message'] = 'Unknown';
-            }
-
-            $code = substr($contents['head']['code'], -3);
-            throw new HttpException($contents['head']['message'], $code);
+        if (isset($contents['error_response'])) {
+            $error_code = $contents['error_response']['error_code'];
+            $error_msg = $contents['error_response']['error_msg'];
+            throw new HttpException($error_msg, $error_code);
         }
+    }
+    
+    /**
+     * @param $apiType
+     * @param $accessToken
+     * @param array $fields
+     * @return array
+     */
+    private function _commonParams($apiType, $accessToken = '', $fields = [])
+    {
+        $params = array(
+            'type' => $apiType,
+            'client_id' => $this->client_id,
+            'timestamp' => time(),
+            'data_type' => 'json',
+            'version' => 'v1',
+        );
+
+        if ($accessToken) {
+            $params['access_token'] = $accessToken;
+        }
+        
+        $params = array_merge($params, $fields);
+
+        $params['sign'] = $this->_sign($params);
+
+        return $params;
     }
 
     /**
+     * @param array $params
+     *
      * @return string
      */
-    protected function getTransMessageId()
+    private function _sign(array $params)
     {
-        return date('YmdHis') . mt_rand(1000, 9999);
+        ksort($params);
+        $to_sign = $this->client_secret;
+        foreach ($params as $key => $value) {
+            if (is_object($value)) {
+                continue;
+            }
+            $to_sign .= "$key$value";
+        }
+        unset($key, $value);
+        $to_sign .= $this->client_secret;
+
+        return strtoupper(md5($to_sign));
     }
 
 }

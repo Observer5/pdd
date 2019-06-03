@@ -15,7 +15,7 @@ class Http
     /**
      * @var
      */
-    protected $baseUri = 'https://open-prod.sf-express.com';
+    protected $baseUri = 'https://gw-api.pinduoduo.com/api/router';
 
     /**
      * Used to identify handler defined by client code
@@ -101,19 +101,18 @@ class Http
      /**
       * JSON request.
       *
-      * @param string       $url
-      * @param string|array $options
+      * @param array $body
       * @param array $queries
       * @param int          $encodeOption
       *
       * @return ResponseInterface
       *
       */
-     public function json($url, $options = [], $encodeOption = JSON_UNESCAPED_UNICODE, $queries = [])
+     public function json($body = [], $encodeOption = JSON_UNESCAPED_UNICODE, $queries = [])
      {
-         is_array($options) && $options = json_encode($options, $encodeOption);
+         is_array($body) && $body = json_encode($body, $encodeOption);
 
-         return $this->request($url, 'POST', ['query' => $queries, 'body' => $options, 'headers' => ['content-type' => 'application/json']]);
+         return $this->request('', 'POST', ['query' => $queries, 'body' => $body, 'headers' => ['content-type' => 'application/json']]);
      }
 
     /**
@@ -212,8 +211,6 @@ class Http
 
         $options = array_merge(self::$defaults, $options);
 
-        Log::debug('Client Request:', compact('url', 'method', 'options'));
-
         $options['handler'] = $this->getHandler();
 
         if (property_exists($this, 'baseUri') && !is_null($this->baseUri)) {
@@ -221,13 +218,6 @@ class Http
         }
 
         $response = $this->getClient()->request($method, $url, $options);
-
-        Log::debug('API response:', [
-            'Status' => $response->getStatusCode(),
-            'Reason' => $response->getReasonPhrase(),
-            'Headers' => $response->getHeaders(),
-            'Body' => strval($response->getBody()),
-        ]);
 
         return $response;
     }

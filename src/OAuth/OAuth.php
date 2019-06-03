@@ -1,10 +1,17 @@
 <?php
+
 namespace EasyPdd\OAuth;
 
 use EasyPdd\Core\Exceptions\AuthorizeFailedException;
 use GuzzleHttp\Client;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
+/**
+ * Class OAuth
+ *
+ * @package EasyPdd\OAuth
+ *
+ */
 class OAuth
 {
     /**
@@ -28,14 +35,12 @@ class OAuth
      */
     protected $memberType;
 
-
     /**
      * The redirect URL.
      *
      * @var string
      */
     protected $redirectUrl;
-
 
     /**
      * The custom parameters to be sent with the request.
@@ -58,6 +63,14 @@ class OAuth
      */
     protected static $guzzleOptions = ['http_errors' => false];
 
+    /**
+     * OAuth constructor.
+     *
+     * @param $clientId
+     * @param $clientSecret
+     * @param null $redirectUrl
+     * @param string $memberType
+     */
     public function __construct($clientId, $clientSecret, $redirectUrl = null, $memberType = 'MERCHANT')
     {
         $this->clientId = $clientId;
@@ -70,8 +83,8 @@ class OAuth
     {
         $authorizeUrlArr = [
             'MERCHANT' => 'https://mms.pinduoduo.com/open.html', //商家授权正式环境
-            'H5' => 'https://mai.pinduoduo.com/h5-login.html', //移动端授权正式环境
-            'JINBAO' => 'https://jinbao.pinduoduo.com/open.html', //多多客授权正式环境
+            'H5'       => 'https://mai.pinduoduo.com/h5-login.html', //移动端授权正式环境
+            'JINBAO'   => 'https://jinbao.pinduoduo.com/open.html', //多多客授权正式环境
         ];
 
         return $this->buildAuthUrlFromBase($authorizeUrlArr[$this->memberType], $state);
@@ -83,7 +96,8 @@ class OAuth
     protected function buildAuthUrlFromBase($url, $state)
     {
         $query = http_build_query($this->getCodeFields($state), '', '&', $this->encodingType);
-        return $url.'?'.$query;
+
+        return $url . '?' . $query;
     }
 
     /**
@@ -92,10 +106,10 @@ class OAuth
     protected function getCodeFields($state = null)
     {
         return array_merge([
-            'client_id' => $this->clientId,
-            'redirect_uri' => $this->redirectUrl,
+            'client_id'     => $this->clientId,
+            'redirect_uri'  => $this->redirectUrl,
             'response_type' => 'code',
-            'state' => $state ?: md5(time()),
+            'state'         => $state ?: md5(time()),
         ], $this->parameters);
     }
 
@@ -133,8 +147,9 @@ class OAuth
     {
         $response = $this->getHttpClient()->get($this->getTokenUrl(), [
             'headers' => ['Accept' => 'application/json'],
-            'query' => $this->getTokenFields($code),
+            'query'   => $this->getTokenFields($code),
         ]);
+
         return $this->parseAccessToken($response->getBody());
     }
 
@@ -149,10 +164,10 @@ class OAuth
     protected function getTokenFields($code)
     {
         return array_filter([
-            'client_id' => $this->clientId,
-            'code' => $code,
-            'grant_type' => 'authorization_code',
-            'client_secret' => $this->clientSecret
+            'client_id'     => $this->clientId,
+            'code'          => $code,
+            'grant_type'    => 'authorization_code',
+            'client_secret' => $this->clientSecret,
         ]);
     }
 
@@ -170,11 +185,10 @@ class OAuth
             $body = json_decode($body, true);
         }
         if (empty($body['access_token'])) {
-            throw new AuthorizeFailedException('Authorize Failed: '.json_encode($body, JSON_UNESCAPED_UNICODE), $body);
+            throw new AuthorizeFailedException('Authorize Failed: ' . json_encode($body, JSON_UNESCAPED_UNICODE),
+                $body);
         }
+
         return new AccessToken($body);
     }
-
-
-
 }

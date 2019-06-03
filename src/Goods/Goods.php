@@ -10,12 +10,20 @@ use EasyPdd\Core\AbstractAPI;
  * @package EasyExpress\Order
  *
  */
-class Goods
+class Goods extends AbstractAPI
 {
-    const API_GET = 'https://gw-api.pinduoduo.com/api/router';
+    const API_LIST_GET = 'pdd.goods.list.get';
 
+    public function __call($method, $arguments)
+    {
+        
+    }
+
+    /**
+     * @return \EasyPdd\Support\Collection
+     */
     public function list()
     {
-        return 'test';
+        return $this->request(self::API_LIST_GET, 'token');
     }
 }

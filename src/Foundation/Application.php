@@ -4,6 +4,7 @@ namespace EasyPdd\Foundation;
 use Doctrine\Common\Cache\Cache as CacheInterface;
 use Doctrine\Common\Cache\FilesystemCache;
 
+use EasyPdd\Goods\Goods;
 use EasyPdd\OAuth\OAuth;
 use EasyPdd\Support\Log;
 use Monolog\Handler\HandlerInterface;
@@ -63,7 +64,6 @@ class Application extends Container
                 return new FilesystemCache(sys_get_temp_dir());
             };
         }
-
     }
 
     /**
@@ -91,7 +91,6 @@ class Application extends Container
             $this->addProvider($provider);
         }
     }
-
 
     /**
      * Return all providers.
@@ -145,7 +144,7 @@ class Application extends Container
             return;
         }
 
-        $logger = new Logger('express');
+        $logger = new Logger('pdd');
 
         if (!$this['config']['debug'] || defined('PHPUNIT_RUNNING')) {
             $logger->pushHandler(new NullHandler());
