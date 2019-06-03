@@ -63,26 +63,6 @@ abstract class AbstractAPI
     {
         // log
         $this->http->addMiddleware($this->logMiddleware());
-        
-        // access token
-//        $this->http->addMiddleware($this->accessTokenMiddleware());
-    }
-
-    /**
-     * Attache access token to request query.
-     *
-     * @return \Closure
-     */
-    protected function accessTokenMiddleware()
-    {
-        return function (callable $handler) {
-            return function (RequestInterface $request, array $options) use ($handler) {
-                if (!$this->accessToken) {
-                    return $handler($request, $options);
-                }
-                return $handler($request, $options);
-            };
-        };
     }
 
     /**
