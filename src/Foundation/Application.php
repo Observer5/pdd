@@ -4,7 +4,7 @@ namespace EasyPdd\Foundation;
 use Doctrine\Common\Cache\Cache as CacheInterface;
 use Doctrine\Common\Cache\FilesystemCache;
 
-use EasyPdd\Goods\Goods;
+use EasyPdd\Goods\Client as GoodsClient;
 use EasyPdd\OAuth\OAuth;
 use EasyPdd\Support\Log;
 use Monolog\Handler\HandlerInterface;
@@ -15,10 +15,11 @@ use Pimple\Container;
 
 /**
  * Class Application
+ *
  * @package EasyPdd\Foundation
  *
  * @property OAuth $oauth
- * @property Goods $goods
+ * @property GoodsClient $goods
  */
 class Application extends Container
 {

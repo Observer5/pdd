@@ -3,6 +3,7 @@
 namespace EasyPdd\Goods;
 
 use EasyPdd\Core\AbstractAPI;
+use EasyPdd\Support\Collection;
 
 /**
  * Class Order
@@ -10,20 +11,18 @@ use EasyPdd\Core\AbstractAPI;
  * @package EasyExpress\Order
  *
  */
-class Goods extends AbstractAPI
+class Client extends AbstractAPI
 {
-    const API_LIST_GET = 'pdd.goods.list.get';
-
-    public function __call($method, $arguments)
-    {
-        
-    }
-
     /**
      * @return \EasyPdd\Support\Collection
      */
     public function list()
     {
-        return $this->request(self::API_LIST_GET, 'token');
+        return $this->request('pdd.goods.list.get', 'token');
+    }
+
+    public function test()
+    {
+        return new Collection([1, 2, 3]);
     }
 }
