@@ -1,4 +1,4 @@
-# EasyPDD 
+# EasyPDD [![Build Status](https://travis-ci.org/Observer5/pdd.svg?branch=master)](https://travis-ci.org/Observer5/pdd)
 
 EasyPDD is a PHP library for use open PinDuoDuo APIs.
 

@@ -79,7 +79,7 @@ class OAuth
         $this->memberType = $memberType;
     }
 
-    protected function getAuthUrl($state)
+    public function getAuthUrl($state)
     {
         $authorizeUrlArr = [
             'MERCHANT' => 'https://mms.pinduoduo.com/open.html', //商家授权正式环境
