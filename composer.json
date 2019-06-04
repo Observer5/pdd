@@ -19,5 +19,14 @@
         "psr-4": {
             "EasyPdd\\": "src/"
         }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "EasyPdd\\Tests\\": "tests/"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^8.1",
+        "mockery/mockery": "^1.2"
     }
 }
