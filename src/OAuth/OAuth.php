@@ -79,6 +79,20 @@ class OAuth
         $this->memberType = $memberType;
     }
 
+    /**
+     * Set the custom parameters of the request.
+     *
+     * @param array $parameters
+     *
+     * @return $this
+     */
+    public function with(array $parameters)
+    {
+        $this->parameters = $parameters;
+
+        return $this;
+    }
+
     public function getAuthUrl($state)
     {
         $authorizeUrlArr = [
