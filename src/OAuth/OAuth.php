@@ -159,9 +159,9 @@ class OAuth
      */
     public function getAccessToken($code)
     {
-        $response = $this->getHttpClient()->get($this->getTokenUrl(), [
-            'headers' => ['Accept' => 'application/json'],
-            'query'   => $this->getTokenFields($code),
+        $response = $this->getHttpClient()->post($this->getTokenUrl(), [
+            'headers' => ['Accept' => 'application/json', 'content-type' => 'application/json'],
+            'body'    => json_encode($this->getTokenFields($code)),
         ]);
 
         return $this->parseAccessToken($response->getBody());

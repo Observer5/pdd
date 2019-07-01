@@ -105,11 +105,11 @@ class Client extends AbstractAPI
         return $this->request('pdd.goods.cat.template.get', $token, ['cat_id' => $catID]);
     }
 
-
     /**
      *
      * 3times/sec, 1200times/day
      *
+     * 
      * @param $token
      * @param array $params
      *
@@ -133,23 +133,21 @@ class Client extends AbstractAPI
     {
         return $this->request('pdd.goods.commit.detail.get', $token, ['goods_commit_id' => $goodsCommitID]);
     }
-    
+
     /**
-     * @return \EasyPdd\Support\Collection
+     *
+     * 商品列表查询
+     *
+     * @see https://open.pinduoduo.com/#/apidocument/port?id=pdd.goods.cat.template.get
+     *
+     * @param $token
+     * @param array $params
+     *
+     * @return Collection
      */
-    public function list($token)
+    public function list($token, array $params = [])
     {
-        return $this->request('pdd.goods.list.get', $token);
+        return $this->request('pdd.goods.list.get', $token, $params);
     }
-
-
-    //pdd.goods.cats.get
-    //pdd.goods.spec.get
-    //pdd.goods.spec.id.get
-
-
-
-    //pdd.goods.cat.template.get
-
 
 }
