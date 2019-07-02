@@ -93,6 +93,11 @@ class OAuth
         return $this;
     }
 
+    /**
+     * @param $state
+     *
+     * @return string
+     */
     public function getAuthUrl($state)
     {
         $authorizeUrlArr = [
@@ -105,7 +110,10 @@ class OAuth
     }
 
     /**
-     * {@inheritdoc}.
+     * @param $url
+     * @param $state
+     *
+     * @return string
      */
     protected function buildAuthUrlFromBase($url, $state)
     {
@@ -115,7 +123,9 @@ class OAuth
     }
 
     /**
-     * {@inheritdoc}.
+     * @param null $state
+     *
+     * @return array
      */
     protected function getCodeFields($state = null)
     {
@@ -155,7 +165,9 @@ class OAuth
     }
 
     /**
-     * {@inheritdoc}.
+     * @param $code
+     *
+     * @return AccessTokenInterface
      */
     public function getAccessToken($code)
     {
@@ -167,22 +179,27 @@ class OAuth
         return $this->parseAccessToken($response->getBody());
     }
 
+    /**
+     * @return string
+     */
     protected function getTokenUrl()
     {
         return 'http://open-api.pinduoduo.com/oauth/token';
     }
 
     /**
-     * {@inheritdoc}.
+     * @param $code
+     *
+     * @return array
      */
     protected function getTokenFields($code)
     {
-        return array_filter([
+        return [
             'client_id'     => $this->clientId,
             'code'          => $code,
             'grant_type'    => 'authorization_code',
             'client_secret' => $this->clientSecret,
-        ]);
+        ];
     }
 
     /**
@@ -199,8 +216,7 @@ class OAuth
             $body = json_decode($body, true);
         }
         if (empty($body['access_token'])) {
-            throw new AuthorizeFailedException('Authorize Failed: ' . json_encode($body, JSON_UNESCAPED_UNICODE),
-                $body);
+            throw new AuthorizeFailedException('Authorize Failed: ' . json_encode($body, JSON_UNESCAPED_UNICODE), $body);
         }
 
         return new AccessToken($body);
