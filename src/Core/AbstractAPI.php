@@ -142,8 +142,28 @@ abstract class AbstractAPI
         
         $params = array_merge($params, $fields);
 
+        $params = $this->_paramsHandle($params);
+
         $params['sign'] = $this->_sign($params);
 
+        return $params;
+    }
+
+    /**
+     * @param array $params
+     *
+     * @return array
+     */
+    private function _paramsHandle(array $params)
+    {
+        array_walk($params, function (&$item) {
+            if (is_array($item)) {
+                $item = json_encode($item);
+            }
+            if (is_bool($item)) {
+                $item = ['false', 'true'][intval($item)];
+            }
+        });
         return $params;
     }
 
@@ -157,9 +177,6 @@ abstract class AbstractAPI
         ksort($params);
         $to_sign = $this->client_secret;
         foreach ($params as $key => $value) {
-            if (is_object($value)) {
-                continue;
-            }
             $to_sign .= "$key$value";
         }
         unset($key, $value);
