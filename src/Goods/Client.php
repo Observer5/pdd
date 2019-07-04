@@ -28,6 +28,21 @@ class Client extends AbstractAPI
     {
         return $this->request('pdd.goods.authorization.cats', $token, ['parent_cat_id' => $parentCatID]);
     }
+
+    /**
+     * 类目预测
+     *
+     * @param $token
+     * @param $outerCatId
+     * @param $outerCatName
+     * @param $outerGoodsName
+     *
+     * @return Collection
+     */
+    public function outerCats($token, $outerCatId, $outerCatName, $outerGoodsName)
+    {
+        return $this->request('pdd.goods.outer.cat.mapping.get', $token, ['outer_cat_id' => $outerCatId, 'outer_cat_name' => $outerCatName, 'outer_goods_name' => $outerGoodsName]);
+    }
     
     /**
      *

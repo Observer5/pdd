@@ -90,7 +90,7 @@ class Log
      */
     private static function createDefaultLogger()
     {
-        $log = new Logger('EasyWeChat');
+        $log = new Logger('pdd');
 
         if (defined('PHPUNIT_RUNNING') || php_sapi_name() === 'cli') {
             $log->pushHandler(new NullHandler());
