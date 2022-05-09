@@ -14,6 +14,9 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
  */
 class OAuth
 {
+
+    const TOKEN_API = 'https://open-api.pinduoduo.com/oauth/token';
+
     /**
      * The client ID.
      *
@@ -94,64 +97,47 @@ class OAuth
     }
 
     /**
-     * @param $state
+     * @param string $state
+     * @param string $view
      *
      * @return string
      */
-    public function getAuthUrl($state)
+    public function authorizationUrl($state, $view = 'web')
     {
         $authorizeUrlArr = [
-            'MERCHANT' => 'https://mms.pinduoduo.com/open.html', //商家授权正式环境
-            'H5'       => 'https://mai.pinduoduo.com/h5-login.html', //移动端授权正式环境
-            'JINBAO'   => 'https://jinbao.pinduoduo.com/open.html', //多多客授权正式环境
+            'MERCHANT'  => 'https://fuwu.pinduoduo.com/service-market/auth?',   //拼多多店铺,WEB端网页授权
+            'H5'        => 'https://mai.pinduoduo.com/h5-login.html?',          //拼多多店铺,H5移动端网页授权
+            'JINBAO'    => 'https://jinbao.pinduoduo.com/open.html?',           //多多进宝推手,WEB端网页授权
+            'KTT'       => 'https://oauth.pinduoduo.com/authorize/ktt?',        //快团团团长,WEB端网页授权
+            'LOGISTICS' => 'https://wb.pinduoduo.com/logistics/auth?',          //拼多多电子面单用户,WEB端网页授权
         ];
 
-        return $this->buildAuthUrlFromBase($authorizeUrlArr[$this->memberType], $state);
-    }
-
-    /**
-     * @param $url
-     * @param $state
-     *
-     * @return string
-     */
-    protected function buildAuthUrlFromBase($url, $state)
-    {
-        $query = http_build_query($this->getCodeFields($state), '', '&', $this->encodingType);
-
-        return $url . '?' . $query;
-    }
-
-    /**
-     * @param null $state
-     *
-     * @return array
-     */
-    protected function getCodeFields($state = null)
-    {
-        return array_merge([
+        $query = array_merge([
             'client_id'     => $this->clientId,
             'redirect_uri'  => $this->redirectUrl,
             'response_type' => 'code',
             'state'         => $state ?: md5(time()),
+            'view'          => $view,
         ], $this->parameters);
+        return $authorizeUrlArr[$this->memberType] . http_build_query($query, '', '&', $this->encodingType);
     }
 
+
     /**
-     * Redirect the user of the application to the provider's authentication screen.
+     * 重定向至授权 URL.
      *
      * @param string $redirectUrl
      *
      * @return \Symfony\Component\HttpFoundation\RedirectResponse
      */
-    public function redirect($redirectUrl = null)
+    public function authorizationRedirect($redirectUrl = null)
     {
         $state = null;
         if (!is_null($redirectUrl)) {
             $this->redirectUrl = $redirectUrl;
         }
 
-        return new RedirectResponse($this->getAuthUrl($state));
+        return new RedirectResponse($this->authorizationUrl($state));
     }
 
     /**
@@ -171,20 +157,12 @@ class OAuth
      */
     public function getAccessToken($code)
     {
-        $response = $this->getHttpClient()->post($this->getTokenUrl(), [
+        $response = $this->getHttpClient()->post(self::TOKEN_API, [
             'headers' => ['Accept' => 'application/json', 'content-type' => 'application/json'],
             'body'    => json_encode($this->getTokenFields($code)),
         ]);
 
         return $this->parseAccessToken($response->getBody());
-    }
-
-    /**
-     * @return string
-     */
-    protected function getTokenUrl()
-    {
-        return 'http://open-api.pinduoduo.com/oauth/token';
     }
 
     /**
@@ -216,7 +194,8 @@ class OAuth
             $body = json_decode($body, true);
         }
         if (empty($body['access_token'])) {
-            throw new AuthorizeFailedException('Authorize Failed: ' . json_encode($body, JSON_UNESCAPED_UNICODE), $body);
+            throw new AuthorizeFailedException('Authorize Failed: ' . json_encode($body, JSON_UNESCAPED_UNICODE),
+                $body);
         }
 
         return new AccessToken($body);

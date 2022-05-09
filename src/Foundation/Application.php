@@ -18,6 +18,8 @@ use Pimple\Container;
  *
  * @package EasyPdd\Foundation
  *
+ *
+ * @property Api $api
  * @property OAuth $oauth
  * @property GoodsClient $goods
  */
@@ -27,8 +29,9 @@ class Application extends Container
      * @var array
      */
     protected $providers = [
-        ServiceProviders\OAuthServiceProvider::class,
+        ServiceProviders\ApiServiceProvider::class,
         ServiceProviders\GoodsServiceProvider::class,
+        ServiceProviders\OAuthServiceProvider::class,
     ];
 
     /**

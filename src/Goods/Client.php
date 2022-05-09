@@ -46,7 +46,7 @@ class Client extends AbstractAPI
     
     /**
      *
-     * 上传图片请
+     * 上传图片
      *
      * @param $token
      * @param $image

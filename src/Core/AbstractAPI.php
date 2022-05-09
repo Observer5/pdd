@@ -4,6 +4,7 @@ namespace EasyPdd\Core;
 
 
 use EasyPdd\Core\Exceptions\HttpException;
+use EasyPdd\Foundation\Application;
 use EasyPdd\Support\Collection;
 use EasyPdd\Support\Log;
 use GuzzleHttp\Middleware;
@@ -14,7 +15,7 @@ use Psr\Http\Message\ResponseInterface;
 abstract class AbstractAPI
 {
     /**
-     * @var 
+     * @var
      */
     private $client_id;
 
@@ -22,19 +23,32 @@ abstract class AbstractAPI
      * @var
      */
     private $client_secret;
-    
+
+    protected $needToken;
+
+    protected $application;
+
+
     /**
      * @var Http
      */
     protected $http;
 
 
-    public function __construct($client_id, $client_secret)
+    /**
+     * AbstractAPI constructor.
+     * @param Application $application
+     * @param bool $needToken
+     */
+    public function __construct(Application $application, $needToken = false)
     {
-        $this->client_id = $client_id;
-        $this->client_secret = $client_secret;
+        $this->client_id = $application['config']->get('client_id');
+        $this->client_secret = $application['config']->get('client_secret');
+
+        $this->application = $application;
+        $this->needToken = $needToken;
     }
-    
+
     /**
      * @return Http
      */
@@ -71,16 +85,17 @@ abstract class AbstractAPI
     protected function logMiddleware()
     {
         return Middleware::tap(function (RequestInterface $request, $options) {
-            Log::debug("Client Request: {$request->getMethod()} {$request->getUri()} ", [$options, $request->getHeaders()]);
+            Log::debug("Client Request: {$request->getMethod()} {$request->getUri()} ",
+                [$options, $request->getHeaders()]);
 
         }, function (RequestInterface $request, $options, PromiseInterface $response) {
 
             $response->then(function (ResponseInterface $response) {
                 Log::debug('API response:', [
-                    'Status' => $response->getStatusCode(),
-                    'Reason' => $response->getReasonPhrase(),
+                    'Status'  => $response->getStatusCode(),
+                    'Reason'  => $response->getReasonPhrase(),
                     'Headers' => $response->getHeaders(),
-                    'Body' => strval($response->getBody()),
+                    'Body'    => strval($response->getBody()),
                 ]);
             });
         });
@@ -119,7 +134,7 @@ abstract class AbstractAPI
             throw new HttpException($error_msg, $error_code);
         }
     }
-    
+
     /**
      * @param $apiType
      * @param $accessToken
@@ -128,23 +143,23 @@ abstract class AbstractAPI
      */
     private function _commonParams($apiType, $accessToken = '', $fields = [])
     {
-        $params = array(
-            'type' => $apiType,
+        $params = [
+            'type'      => $apiType,
             'client_id' => $this->client_id,
             'timestamp' => time(),
             'data_type' => 'json',
-            'version' => 'v1',
-        );
+            'version'   => 'v1',
+        ];
 
         if ($accessToken) {
             $params['access_token'] = $accessToken;
         }
-        
+
         $params = array_merge($params, $fields);
 
         $params = $this->_paramsHandle($params);
 
-        $params['sign'] = $this->_sign($params);
+        $params['sign'] = $this->_signature($params);
 
         return $params;
     }
@@ -172,7 +187,7 @@ abstract class AbstractAPI
      *
      * @return string
      */
-    private function _sign(array $params)
+    private function _signature(array $params)
     {
         ksort($params);
         $to_sign = $this->client_secret;

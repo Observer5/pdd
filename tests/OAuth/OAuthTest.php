@@ -17,6 +17,6 @@ class OAuthTest extends TestCase
     {
         $oauth = $this->getOAuth();
 
-        $this->assertInstanceOf(RedirectResponse::class, $oauth->redirect());
+        $this->assertInstanceOf(RedirectResponse::class, $oauth->authorizationRedirect());
     }
 }

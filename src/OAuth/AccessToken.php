@@ -6,6 +6,12 @@ use ArrayAccess;
 use InvalidArgumentException;
 use JsonSerializable;
 
+
+/**
+ * @see 换取access_token返回值 https://open.pinduoduo.com/application/document/browse?idStr=BD3A776A4D41D5F5
+ * Class AccessToken
+ * @package EasyPdd\OAuth
+ */
 class AccessToken implements AccessTokenInterface, ArrayAccess, JsonSerializable
 {
     use HasAttributes;
