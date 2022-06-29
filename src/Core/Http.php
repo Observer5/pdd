@@ -15,7 +15,7 @@ class Http
     /**
      * @var
      */
-    protected $baseUri = 'https://gw-api.pinduoduo.com/api/router';
+    public $baseUri = 'https://gw-api.pinduoduo.com/api/router';
 
     /**
      * Used to identify handler defined by client code

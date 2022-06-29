@@ -28,6 +28,12 @@ abstract class AbstractAPI
 
     protected $application;
 
+    protected $model_type;
+
+    protected $base_uri;
+
+    protected $api_key;
+
 
     /**
      * @var Http
@@ -44,6 +50,12 @@ abstract class AbstractAPI
     {
         $this->client_id = $application['config']->get('client_id');
         $this->client_secret = $application['config']->get('client_secret');
+
+        if ($application['config']->get('model_type')) {
+            $this->base_uri = $application['config']->get('base_uri');
+            $this->api_key = $application['config']->get('api_key');
+            $this->model_type = $application['config']->get('model_type');
+        }
 
         $this->application = $application;
         $this->needToken = $needToken;
@@ -114,7 +126,15 @@ abstract class AbstractAPI
 
         $data = $this->_commonParams($apiType, $accessToken, $params);
 
-        $contents = $http->parseJSON(call_user_func_array([$http, 'json'], [$data]));
+        if (!empty($this->model_type)) {
+            $http->baseUri = urldecode($this->base_uri);
+
+            $requestParams = [$data, JSON_UNESCAPED_UNICODE, 'apiKey='.$this->api_key];
+        } else {
+            $requestParams = [$data];
+        }
+
+        $contents = $http->parseJSON(call_user_func_array([$http, 'json'], $requestParams));
 
         $this->checkAndThrow($contents);
 
@@ -159,7 +179,9 @@ abstract class AbstractAPI
 
         $params = $this->_paramsHandle($params);
 
-        $params['sign'] = $this->_signature($params);
+        if (!empty($this->model_type)) {
+            $params['sign'] = $this->_signature($params);
+        }
 
         return $params;
     }
