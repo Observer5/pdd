@@ -179,7 +179,7 @@ abstract class AbstractAPI
 
         $params = $this->_paramsHandle($params);
 
-        if (!empty($this->model_type)) {
+        if (empty($this->model_type)) {
             $params['sign'] = $this->_signature($params);
         }
 
