@@ -127,7 +127,7 @@ abstract class AbstractAPI
         $data = $this->_commonParams($apiType, $accessToken, $params);
 
         if (!empty($this->model_type)) {
-            $http->baseUri = urldecode($this->base_uri);
+            $http->baseUri = $this->base_uri;
 
             $requestParams = [$data, JSON_UNESCAPED_UNICODE, 'apiKey='.$this->api_key];
         } else {
