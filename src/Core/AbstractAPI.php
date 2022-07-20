@@ -34,6 +34,10 @@ abstract class AbstractAPI
 
     protected $api_key;
 
+    protected $user_agent;
+
+    protected $referer;
+
 
     /**
      * @var Http
@@ -55,6 +59,19 @@ abstract class AbstractAPI
             $this->base_uri = $application['config']->get('base_uri');
             $this->api_key = $application['config']->get('api_key');
             $this->model_type = $application['config']->get('model_type');
+
+            $userAgents = $application['config']->get('user_agent');
+            $referers = $application['config']->get('referer');
+
+            if (!is_array($userAgents)) {
+                $userAgents = json_decode($userAgents, true);
+            }
+            $this->user_agent = !empty($userAgents) ? $userAgents[array_rand($userAgents, 1)] : '';
+
+            if (!is_array($referers)) {
+                $referers = json_decode($referers, true);
+            }
+            $this->referer = !empty($referers) ? $referers[array_rand($referers, 1)] : '';
         }
 
         $this->application = $application;
@@ -115,10 +132,10 @@ abstract class AbstractAPI
 
     /**
      * @param $apiType
-     * @param string $accessToken
-     * @param array $params
-     *
+     * @param  string  $accessToken
+     * @param  array  $params
      * @return Collection
+     * @throws HttpException
      */
     public function request($apiType, $accessToken = '', array $params = [])
     {
@@ -129,7 +146,15 @@ abstract class AbstractAPI
         if (!empty($this->model_type)) {
             $http->baseUri = $this->base_uri;
 
-            $requestParams = [$data, JSON_UNESCAPED_UNICODE, 'apiKey='.$this->api_key];
+            $headers = [
+                'content-type'     => 'application/json',
+                'user-agent'       =>  $this->user_agent,
+                'referer'          =>  $this->referer,
+                'X-Requested-With' => 'XMLHttpRequest',
+                'Cookie'           => 'admin=' . mt_rand(10, 100),
+            ];
+
+            $requestParams = [$data, JSON_UNESCAPED_UNICODE, 'apiKey='.$this->api_key, $headers];
         } else {
             $requestParams = [$data];
         }

@@ -98,21 +98,21 @@ class Http
         return $this->request($url, 'POST', [$key => $options]);
     }
 
-     /**
-      * JSON request.
-      *
-      * @param array $body
-      * @param array $queries
-      * @param int          $encodeOption
-      *
-      * @return ResponseInterface
-      *
-      */
-     public function json($body = [], $encodeOption = JSON_UNESCAPED_UNICODE, $queries = [])
+    /**
+     * JSON request.
+     *
+     * @param  array  $body
+     * @param  int  $encodeOption
+     * @param  array  $queries
+     * @param  string[]  $headers
+     *
+     * @return ResponseInterface
+     */
+     public function json($body = [], $encodeOption = JSON_UNESCAPED_UNICODE, $queries = [], $headers = ['content-type' => 'application/json'])
      {
          is_array($body) && $body = json_encode($body, $encodeOption);
 
-         return $this->request('', 'POST', ['query' => $queries, 'body' => $body, 'headers' => ['content-type' => 'application/json']]);
+         return $this->request('', 'POST', ['query' => $queries, 'body' => $body, 'headers' => $headers]);
      }
 
     /**
