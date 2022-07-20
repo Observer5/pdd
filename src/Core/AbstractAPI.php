@@ -59,19 +59,8 @@ abstract class AbstractAPI
             $this->base_uri = $application['config']->get('base_uri');
             $this->api_key = $application['config']->get('api_key');
             $this->model_type = $application['config']->get('model_type');
-
-            $userAgents = $application['config']->get('user_agent');
-            $referers = $application['config']->get('referer');
-
-            if (!is_array($userAgents)) {
-                $userAgents = json_decode($userAgents, true);
-            }
-            $this->user_agent = !empty($userAgents) ? $userAgents[array_rand($userAgents, 1)] : '';
-
-            if (!is_array($referers)) {
-                $referers = json_decode($referers, true);
-            }
-            $this->referer = !empty($referers) ? $referers[array_rand($referers, 1)] : '';
+            $this->user_agent = $application['config']->get('user_agent');
+            $this->referer = $application['config']->get('referer');
         }
 
         $this->application = $application;
@@ -146,10 +135,22 @@ abstract class AbstractAPI
         if (!empty($this->model_type)) {
             $http->baseUri = $this->base_uri;
 
+            $userAgents = $this->user_agent;
+            if (!is_array($userAgents)) {
+                $userAgents = json_decode($userAgents, true);
+            }
+            $userAgent = !empty($userAgents) ? $userAgents[array_rand($userAgents, 1)] : '';
+
+            $refererArr = $this->referer;
+            if (!is_array($refererArr)) {
+                $refererArr = json_decode($refererArr, true);
+            }
+            $referer = !empty($refererArr) ? $refererArr[array_rand($refererArr, 1)] : '';
+
             $headers = [
                 'content-type'     => 'application/json',
-                'user-agent'       =>  $this->user_agent,
-                'referer'          =>  $this->referer,
+                'user-agent'       =>  $userAgent,
+                'referer'          =>  $referer,
                 'X-Requested-With' => 'XMLHttpRequest',
                 'Cookie'           => 'admin=' . mt_rand(10, 100),
             ];
